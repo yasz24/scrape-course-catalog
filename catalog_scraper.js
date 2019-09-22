@@ -2,7 +2,7 @@ var rp = require('request-promise');
 var cheerio = require('cheerio');
 
 var options = {
-    uri: 'http://catalog.northeastern.edu/undergraduate/computer-information-science/computer-information-science-combined-majors/computer-science-mathematics-bs/#programrequirementstext',
+    uri: 'http://catalog.northeastern.edu/archive/2018-2019/undergraduate/computer-information-science/computer-science/bscs/#programrequirementstext',
     transform: function (body) {
         return cheerio.load(body);
     }
@@ -13,11 +13,19 @@ rp(options)
         var courseData = []
         $('#programrequirementstextcontainer table.sc_courselist tr').each(function() {
         	var currentRow = $(this);
-        	currentRow.find("td.codecol a").each(function() {
-        		var currentAnchor = $(this)
-        		var courseNum = currentAnchor.text()
-        		courseData.push(courseNum);
-        	});
+            
+            if (currentRow.find("td.codecol a").length !== 0) {
+                var requirement = "";
+                currentRow.find("td.codecol a").each(function() {
+                    let currentAnchor = $(this)
+                    let courseNum = currentAnchor.text()
+                    if (requirement !== "") {
+                        courseNum = " and " + courseNum
+                    }
+                    requirement += courseNum
+                });
+                courseData.push(requirement);
+            }
         });
         
         console.log(courseData);
