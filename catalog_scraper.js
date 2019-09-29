@@ -12,7 +12,8 @@ var options = {
 
 rp(options)
 	.then(function ($) {
-        var courseData = []
+        var major = []
+        var sectionReq = []
         var sectionIsOrReq = false
         var orRequirement = "";
         $('#programrequirementstextcontainer table.sc_courselist tr').each(function() {
@@ -20,12 +21,16 @@ rp(options)
             if (currentRow.find("span.areaheader").length !== 0) {
                 //add the previous orRequirement to the course data
                 if (orRequirement !== "") {
-                    courseData.push(orRequirement);
+                    sectionReq.push(orRequirement);
                     orRequirement = "";
                     sectionIsOrReq = false;
+                }
+                if (sectionReq.length !== 0) {
+                    major.push(sectionReq)
+                    sectionReq = []
                 }   
                 let commentSpan = $(this);
-                courseData.push(commentSpan.text());
+                sectionReq.push(commentSpan.text());
             }
             if (currentRow.find("span.courselistcomment").length !== 0) {
                 currentRow.find("span.courselistcomment").each(function() {
@@ -46,21 +51,25 @@ rp(options)
                     andRequirement += courseNum
                 });
                 if (sectionIsOrReq) {
-                        if (orRequirement !== "") {
-                            orRequirement += " or " + andRequirement;
-                        }
-                        else {
-                            orRequirement = andRequirement;
-                        }
+                    if (orRequirement !== "") {
+                        orRequirement += " or " + andRequirement;
+                    }
+                    else {
+                        orRequirement = andRequirement;
+                    }
                 } else {
-                        courseData.push(andRequirement);
+                    sectionReq.push(andRequirement);
                 }
             }
         });
         if (orRequirement !== "") {
-            courseData.push(orRequirement);
+            sectionReq.push(orRequirement);
         }
-        console.log(courseData);
+        if (sectionReq.length !== 0) {
+            major.push(sectionReq);
+            sectionReq = []
+        }  
+        console.log(major);
     })
     .catch(function (err) {
         // Crawling failed or Cheerio choked...
