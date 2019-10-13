@@ -47,6 +47,9 @@ rp(options)
                 });
             }
             if (sectionIsRange) {
+                if (sectionReq.length === 1) {
+                    sectionReq.push("RANGE");
+                }
                 if (currentRow.find("span.courselistcomment").length !== 0) {
                     let commentSpan = $(this);
                     let range = [];
@@ -55,8 +58,10 @@ rp(options)
                         let courseNum = currentAnchor.text()
                         range.push(courseNum);
                     });
-                    rangeString = range.join(" - ");
-                    sectionReq.push(rangeString);
+                    if (range.length !== 0) {
+                        rangeString = range.join("-");
+                        sectionReq.push(rangeString);
+                    }
                 }
             } else {
                 if (currentRow.find("td.codecol a").length !== 0) {
@@ -65,18 +70,24 @@ rp(options)
                         let currentAnchor = $(this)
                         let courseNum = currentAnchor.text()
                         if (andRequirement !== "") {
-                            courseNum = " and " + courseNum
+                            courseNum = "%and%" + courseNum
                         }
                         andRequirement += courseNum
                     });
                     if (sectionIsOrReq) {
+                        if (sectionReq.length === 1) {
+                            sectionReq.push("OR");
+                        }
                         if (orRequirement !== "") {
-                            orRequirement += " or " + andRequirement;
+                            orRequirement += "%or%" + andRequirement;
                         }
                         else {
                             orRequirement = andRequirement;
                         }
                     } else {
+                        if (sectionReq.length === 1) {
+                            sectionReq.push("AND");
+                        }
                         sectionReq.push(andRequirement);
                     }
                 }
