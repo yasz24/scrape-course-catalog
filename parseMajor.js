@@ -18,27 +18,44 @@ var data = [ [ 'Computer Science Overview', 'AND', 'CS 1200', 'CS 1210' ],
   [ 'Presentation Requirement', 'AND', 'THTR 1170' ],
   [ 'Computer Science Capstone',
     'OR',
+    '4-5',
     'CS 4100%or%CS 4300%or%CS 4410%or%CS 4150%or%CS 4550%or%CS 4991%or%IS 4900' ],
   [ 'Computer Science Elective Courses',
     'RANGE',
+    '8',
     'CS 2500-CS 5010',
     'IS 2000-IS 4900',
     'DS 2000-DS 4900' ],
   [ 'Mathematics Courses',
     'OR',
+    '',
     'MATH 1341%or%MATH 1342%or%MATH 2331%or%MATH 3081' ],
   [ 'Computing and Social Issues',
     'OR',
+    '4',
     'ANTH 3418%or%IA 5240%or%INSH 2102%or%PHIL 1145%or%SOCL 1280%or%SOCL 3485%or%SOCL 4528' ],
   [ 'Electrical Engineering', 'AND', 'EECE 2160' ],
   [ 'Science Requirement',
     'OR',
+    '10',
     'BIOL 1111%and%BIOL 1112%or%BIOL 1113%and%BIOL 1114%or%BIOL 2301%and%BIOL 2302%or%CHEM 1211%and%CHEM 1212%and%CHEM 1213%or%CHEM 1214%and%CHEM 1215%and%CHEM 1216%or%ENVR 1200%and%ENVR 1201%or%ENVR 1202%and%ENVR 1203%or%ENVR 1200%and%ENVR 1201%or%ENVR 2310%and%ENVR 2311%or%ENVR 2340%and%ENVR 2341%or%ENVR 3300%and%ENVR 3301%or%ENVR 4500%and%ENVR 4501%or%ENVR 1202%and%ENVR 1203%or%ENVR 5242%and%ENVR 5243%or%PHYS 1145%and%PHYS 1146%or%PHYS 1147%and%PHYS 1148%or%PHYS 1151%and%PHYS 1152%and%PHYS 1153%or%PHYS 1155%and%PHYS 1156%and%PHYS 1157%or%PHYS 1161%and%PHYS 1162%and%PHYS 1163%or%PHYS 1165%and%PHYS 1166%and%PHYS 1167' ],
   [ 'College Writing', 'AND', 'ENGW 1111' ],
   [ 'Advanced Writing in the Disciplines',
     'AND',
     'ENGW 3302',
     'ENGW 3315' ] ]
+
+var scrapeMajorDataFromCatalog = require('./catalog_scraper');
+
+module.exports = parseMajorData;
+
+
+// function catalogToMajor(catalogLink) {
+
+//   scrapeMajorDataFromCatalog(catalogLink).then(function(majorData) {
+//     console.log(majorData);
+//   });
+// }
 
 function parseMajorData(data) {
   let sectionMap = {}
@@ -48,11 +65,22 @@ function parseMajorData(data) {
       let sectionType = section[1];
       if (sectionType === "AND") {
         sectionMap[sectionName] = createAndSection(sectionName, section.slice(2));
-      } else if (sectionType === "OR") {
-        //need to scrape and pass down the min credits, max credits
-        sectionMap[sectionName] = createOrSection(sectionName, section.slice(2), 0 ,0);
       } else {
-        //sectionMap[sectionName] = createRangeSection(sectionName, section.slice(2));
+        //need to scrape and pass down the min credits, max credits
+        let minCredit = 0;
+        let maxCredit = 0;
+        let creditSplitArr = section[2].split("-");
+        minCredit = creditSplitArr[0];
+        maxCredit = creditSplitArr[0];
+
+        if (creditSplitArr.length > 1) {
+          maxCredit = creditSplitArr[1];
+        }
+        if (sectionType === "OR") {
+          sectionMap[sectionName] = createOrSection(sectionName, section.slice(2), minCredit, maxCredit);
+        } else {
+          sectionMap[sectionName] = createRangeSection(sectionName, section.slice(2), minCredit, maxCredit);
+        }
       }
     }
   });
@@ -134,4 +162,26 @@ function createOrSection(sectionName, reqList, minCredits, maxCredits) {
   ORSection['requirements'] = requirements
   return ORSection
 }
-console.log(parseMajorData(data));
+
+function createRangeSection(sectionName, reqList, minCredits, maxCredits) {
+  let RangeSection = {type: "RANGE", name: sectionName, numCreditsMin: minCredits, numCreditsMax: maxCredits}
+  let requirements = [];
+  reqList.forEach((requirement) => {
+
+    let splitArray = requirement.split("-");
+    if (splitArray.length > 1) {
+      let lowerTuple = splitArray[0].split(String.fromCharCode(160));
+      let subject = lowerTuple[0];
+      let rangeStart = lowerTuple[1]
+      let rangeEnd = splitArray[1].split(String.fromCharCode(160))[1];
+      let ISubjectRange = { subject: subject, idRangeStart: rangeStart, idRangeEnd: rangeEnd}
+      requirements.push(ISubjectRange);
+    } 
+  });
+  RangeSection['requirements'] = requirements
+  return RangeSection
+}
+
+//catalogToMajor('http://catalog.northeastern.edu/archive/2018-2019/undergraduate/computer-information-science/computer-science/bscs/#programrequirementstext');
+
+//console.log(parseMajorData(data));
