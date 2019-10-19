@@ -19,7 +19,7 @@ function catalogToMajor(link) {
             //write the parse major data to database?
             let parsedMajorObject = parseMajorData(scrapedMajor);
             console.log("--------------------Parsed major object--------------------");
-            console.log(parsedMajorObject);
+            console.log(JSON.stringify(parsedMajorObject));
         })
         .catch(function (err) {
             console.log(err)

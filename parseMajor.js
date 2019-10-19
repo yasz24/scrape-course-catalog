@@ -30,9 +30,9 @@ function parseMajorData(data) {
           maxCredit = creditSplitArr[1];
         }
         if (sectionType === "OR") {
-          sectionMap[sectionName] = createOrSection(sectionName, section.slice(2), minCredit, maxCredit);
+          sectionMap[sectionName] = createOrSection(sectionName, section.slice(3), minCredit, maxCredit);
         } else {
-          sectionMap[sectionName] = createRangeSection(sectionName, section.slice(2), minCredit, maxCredit);
+          sectionMap[sectionName] = createRangeSection(sectionName, section.slice(3), minCredit, maxCredit);
         }
       }
     }
