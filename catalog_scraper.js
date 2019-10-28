@@ -36,14 +36,15 @@ function scrapeMajorDataFromCatalog($) {
         var hoursReq = "";
         $('#programrequirementstextcontainer table.sc_courselist tr').each(function() {
             var currentRow = $(this);
+            //if (currentRow.find("span.areaheader").length !== 0 || currentRow.find("span.areasubheader").length !== 0) {
             if (currentRow.find("span.areaheader").length !== 0) {
                 sectionIsRange = false
+                sectionIsOrReq = false;
                 hoursReq = "";
                 //add the previous orRequirement to the course data
                 if (orRequirement !== "") {
                     sectionReq.push(orRequirement);
                     orRequirement = "";
-                    sectionIsOrReq = false;
                 }
                 if (sectionReq.length !== 0) {
                     major.push(sectionReq)
@@ -127,4 +128,11 @@ function scrapeMajorDataFromCatalog($) {
         resolve(major);
     });
 }
-catalogToMajor('http://catalog.northeastern.edu/archive/2018-2019/undergraduate/computer-information-science/computer-science/bscs/#programrequirementstext')
+//Computer Science
+catalogToMajor('http://catalog.northeastern.edu/archive/2018-2019/undergraduate/computer-information-science/computer-science/bscs/#programrequirementstext');
+//Biochemistry
+//catalogToMajor('http://catalog.northeastern.edu/archive/2018-2019/undergraduate/science/biochemistry/biochemistry-bs/#programrequirementstext');
+//Mathematics
+//catalogToMajor('http://catalog.northeastern.edu/archive/2018-2019/undergraduate/science/mathematics/mathematics-bs/#programrequirementstext');
+//HealthSciences
+//catalogToMajor('http://catalog.northeastern.edu/archive/2018-2019/undergraduate/health-sciences/health-sciences/health-science-bs/#majorrequirementstext')
