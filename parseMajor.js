@@ -11,13 +11,25 @@ module.exports = parseMajorData;
 // }
 
 function parseMajorData(data) {
-  let sectionMap = {}
+  let majorName = data[0];
+  let edition = data[1];
+  data = data.slice(2);
+  let requirementGroups = [];
+  let requirementGroupMap = {}
+  let major = {
+    name: majorName,
+    yearVersion: edition,
+    isLanguageRequired: false,
+    totalCreditsRequired: 0,
+    nupaths: []
+  }
   data.forEach((section) => {
     if (section.length > 2) {
-      let sectionName = section[0];
-      let sectionType = section[1];
-      if (sectionType === "AND") {
-        sectionMap[sectionName] = createAndSection(sectionName, section.slice(2));
+      let requirementGroupName = section[0];
+      requirementGroups.push(requirementGroupName);
+      let requirementGroupType = section[1];
+      if (requirementGroupType === "AND") {
+        requirementGroupMap[requirementGroupName] = createAndSection(requirementGroupName, section.slice(2));
       } else {
         //need to scrape and pass down the min credits, max credits
         let minCredit = 0;
@@ -29,19 +41,21 @@ function parseMajorData(data) {
         if (creditSplitArr.length > 1) {
           maxCredit = creditSplitArr[1];
         }
-        if (sectionType === "OR") {
-          sectionMap[sectionName] = createOrSection(sectionName, section.slice(3), minCredit, maxCredit);
+        if (requirementGroupType === "OR") {
+          requirementGroupMap[requirementGroupName] = createOrSection(requirementGroupName, section.slice(3), minCredit, maxCredit);
         } else {
-          sectionMap[sectionName] = createRangeSection(sectionName, section.slice(3), minCredit, maxCredit);
+          requirementGroupMap[requirementGroupName] = createRangeSection(requirementGroupName, section.slice(3), minCredit, maxCredit);
         }
       }
     }
   });
-  return sectionMap
+  major['requirementGroups'] =  requirementGroups;
+  major['requirementGroupMap'] = requirementGroupMap;
+  return major
 }
 
-function createAndSection(sectionName, reqList) {
-  let ANDSection = {type: "AND", name: sectionName}
+function createAndSection(requirementGroupName, reqList) {
+  let ANDSection = {type: "AND", name: requirementGroupName}
   let requirements = [];
   reqList.forEach((requirement) => {
     let splitAndArray = requirement.split("%and%");
@@ -78,8 +92,8 @@ function createAndSection(sectionName, reqList) {
   return ANDSection
 }
 
-function createOrSection(sectionName, reqList, minCredits, maxCredits) {
-  let ORSection = {type: "OR", name: sectionName, numCreditsMin: minCredits, numCreditsMax: maxCredits}
+function createOrSection(requirementGroupName, reqList, minCredits, maxCredits) {
+  let ORSection = {type: "OR", name: requirementGroupName, numCreditsMin: minCredits, numCreditsMax: maxCredits}
   let requirements = [];
   reqList.forEach((requirement) => {
     let splitOrArray = requirement.split("%or%");
@@ -116,8 +130,8 @@ function createOrSection(sectionName, reqList, minCredits, maxCredits) {
   return ORSection
 }
 
-function createRangeSection(sectionName, reqList, minCredits, maxCredits) {
-  let RangeSection = {type: "RANGE", name: sectionName, numCreditsMin: minCredits, numCreditsMax: maxCredits}
+function createRangeSection(requirementGroupName, reqList, minCredits, maxCredits) {
+  let RangeSection = {type: "RANGE", name: requirementGroupName, numCreditsMin: minCredits, numCreditsMax: maxCredits}
   let requirements = [];
   reqList.forEach((requirement) => {
 

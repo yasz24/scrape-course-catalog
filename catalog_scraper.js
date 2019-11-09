@@ -1,6 +1,7 @@
 var rp = require('request-promise');
 var cheerio = require('cheerio');
 
+module.exports = catalogToMajor;
 //BUGS:
 // - ENGW 3302 or ENGW3315 show up as separate orRequirements.
 
@@ -28,7 +29,7 @@ function catalogToMajor(link) {
 
 function scrapeMajorDataFromCatalog($) {
     return new Promise((resolve, reject) => {
-        var major = []
+        var major = [$('#content .page-title').text(), $('#edition').text().split(" ")[0]]
         var sectionReq = []
         var sectionIsOrReq = false
         var sectionIsRange = false
