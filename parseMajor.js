@@ -1,14 +1,5 @@
-
-
 module.exports = parseMajorData;
 
-
-// function catalogToMajor(catalogLink) {
-
-//   scrapeMajorDataFromCatalog(catalogLink).then(function(majorData) {
-//     console.log(majorData);
-//   });
-// }
 
 function parseMajorData(data) {
   let majorName = data[0];
@@ -60,32 +51,16 @@ function createAndSection(requirementGroupName, reqList) {
   reqList.forEach((requirement) => {
     let splitAndArray = requirement.split("%and%");
     if (splitAndArray.length > 1) {
-        let IAndCourse = {'type': "AND"};
-        let andCourses = []
-        splitAndArray.forEach((conjunctiveClause) => {
-          let splitOrArray = conjunctiveClause.split("%or%");
-          if (splitOrArray.length > 1) {
-            let IOrCourse = {'type': "OR"};
-            let orCourses = []
-            splitOrArray.forEach((disjunctiveClause) => {
-              let splitBySpace = disjunctiveClause.split(String.fromCharCode(160));
-              let IRequiredCourse = {'type': "COURSE", 'classId': splitBySpace[1], 'subject': splitBySpace[0]};
-              orCourses.push(IRequiredCourse);
-            });
-            IOrCourse['courses'] = orCourses;
-            andCourses.push(IOrCourse);
-          } else {
-            let splitBySpace = conjunctiveClause.split(String.fromCharCode(160));
-            let IRequiredCourse = {'type': "COURSE", 'classId': splitBySpace[1], 'subject': splitBySpace[0]};
-            andCourses.push(IRequiredCourse);
-          }
-        });
-        IAndCourse['courses'] = andCourses;
-        requirements.push(IAndCourse);
+      processAndSplit(splitAndArray, requirements);
     } else {
-      let splitBySpace = requirement.split(String.fromCharCode(160));
-      let IRequiredCourse = {'type': "COURSE", 'classId': splitBySpace[1], 'subject': splitBySpace[0]};
-      requirements.push(IRequiredCourse);
+      let splitOrArray = requirement.split("%or%");
+      if (splitOrArray.length > 1) {
+        processOrSplit(splitOrArray, requirements)
+      } else {
+        let splitBySpace = requirement.split(String.fromCharCode(160));
+        let IRequiredCourse = {'type': "COURSE", 'classId': parseInt(splitBySpace[1]), 'subject': splitBySpace[0]};
+        requirements.push(IRequiredCourse);
+      }
     }
   });
   ANDSection['requirements'] = requirements
@@ -98,32 +73,16 @@ function createOrSection(requirementGroupName, reqList, minCredits, maxCredits) 
   reqList.forEach((requirement) => {
     let splitOrArray = requirement.split("%or%");
     if (splitOrArray.length > 1) {
-        let IOrCourse = {'type': "OR"};
-        let orCourses = []
-        splitOrArray.forEach((disjunctiveClause) => {
-          let splitAndArray = disjunctiveClause.split("%and%");
-          if (splitAndArray.length > 1) {
-            let IAndCourse = {'type': "AND"};
-            let andCourses = []
-            splitAndArray.forEach((conjunctiveClause) => {
-              let splitBySpace = conjunctiveClause.split(String.fromCharCode(160));
-              let IRequiredCourse = {'type': "COURSE", 'classId': splitBySpace[1], 'subject': splitBySpace[0]};
-              andCourses.push(IRequiredCourse);
-            });
-            IAndCourse['courses'] = andCourses;
-            orCourses.push(IAndCourse);
-          } else {
-            let splitBySpace = disjunctiveClause.split(String.fromCharCode(160));
-            let IRequiredCourse = {'type': "COURSE", 'classId': splitBySpace[1], 'subject': splitBySpace[0]};
-            orCourses.push(IRequiredCourse);
-          }
-        });
-        IOrCourse['courses'] = orCourses;
-        requirements.push(IOrCourse);
+      processOrSplit(splitOrArray, requirements)
     } else {
-      let splitBySpace = requirement.split(String.fromCharCode(160));
-      let IRequiredCourse = {'type': "COURSE", 'classId': splitBySpace[1], 'subject': splitBySpace[0]};
-      requirements.push(IRequiredCourse);
+      let splitAndArray = requirement.split("%and%");
+      if (splitAndArray.length > 1) {
+        processAndSplit(splitAndArray, requirements);
+      } else {
+        let splitBySpace = requirement.split(String.fromCharCode(160));
+        let IRequiredCourse = {'type': "COURSE", 'classId': parseInt(splitBySpace[1]), 'subject': splitBySpace[0]};
+        requirements.push(IRequiredCourse);
+      }
     }
   });
   ORSection['requirements'] = requirements
@@ -149,6 +108,52 @@ function createRangeSection(requirementGroupName, reqList, minCredits, maxCredit
   return RangeSection
 }
 
-//catalogToMajor('http://catalog.northeastern.edu/archive/2018-2019/undergraduate/computer-information-science/computer-science/bscs/#programrequirementstext');
+function processAndSplit(splitAndArray, requirements) {
+  let IAndCourse = {'type': "AND"};
+  let andCourses = []
+  splitAndArray.forEach((conjunctiveClause) => {
+    let splitOrArray = conjunctiveClause.split("%or%");
+    if (splitOrArray.length > 1) {
+      let IOrCourse = {'type': "OR"};
+      let orCourses = []
+      splitOrArray.forEach((disjunctiveClause) => {
+        let splitBySpace = disjunctiveClause.split(String.fromCharCode(160));
+        let IRequiredCourse = {'type': "COURSE", 'classId': parseInt(splitBySpace[1]), 'subject': splitBySpace[0]};
+        orCourses.push(IRequiredCourse);
+      });
+      IOrCourse['courses'] = orCourses;
+      andCourses.push(IOrCourse);
+    } else {
+      let splitBySpace = conjunctiveClause.split(String.fromCharCode(160));
+      let IRequiredCourse = {'type': "COURSE", 'classId': parseInt(splitBySpace[1]), 'subject': splitBySpace[0]};
+      andCourses.push(IRequiredCourse);
+    }
+  });
+  IAndCourse['courses'] = andCourses;
+  requirements.push(IAndCourse);
+}
 
-//console.log(parseMajorData(data));
+function processOrSplit(splitOrArray, requirements) {
+  let IOrCourse = {'type': "OR"};
+  let orCourses = []
+  splitOrArray.forEach((disjunctiveClause) => {
+    let splitAndArray = disjunctiveClause.split("%and%");
+    if (splitAndArray.length > 1) {
+      let IAndCourse = {'type': "AND"};
+      let andCourses = []
+      splitAndArray.forEach((conjunctiveClause) => {
+        let splitBySpace = conjunctiveClause.split(String.fromCharCode(160));
+        let IRequiredCourse = {'type': "COURSE", 'classId': parseInt(splitBySpace[1]), 'subject': splitBySpace[0]};
+        andCourses.push(IRequiredCourse);
+      });
+      IAndCourse['courses'] = andCourses;
+      orCourses.push(IAndCourse);
+    } else {
+      let splitBySpace = disjunctiveClause.split(String.fromCharCode(160));
+      let IRequiredCourse = {'type': "COURSE", 'classId': parseInt(splitBySpace[1]), 'subject': splitBySpace[0]};
+      orCourses.push(IRequiredCourse);
+    }
+  });
+  IOrCourse['courses'] = orCourses;
+  requirements.push(IOrCourse);
+}
