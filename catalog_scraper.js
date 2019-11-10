@@ -2,8 +2,6 @@ var rp = require('request-promise');
 var cheerio = require('cheerio');
 
 module.exports = catalogToMajor;
-//BUGS:
-// - ENGW 3302 or ENGW3315 show up as separate orRequirements.
 
 var parseMajorData = require('./parseMajor');
 
@@ -112,7 +110,12 @@ function scrapeMajorDataFromCatalog($) {
                         if (sectionReq.length === 1) {
                             sectionReq.push("AND");
                         }
-                        sectionReq.push(andRequirement);
+                        //if this class has an or prefix, append to the last class added to the sectionReq.
+                        if (currentRow.attr('class').includes('orclass')) {
+                            sectionReq[sectionReq.length - 1] += "%or%" + andRequirement;
+                        } else {
+                            sectionReq.push(andRequirement);
+                        }
                     }
                 }
             }
